@@ -16,7 +16,7 @@
     
     <link href="/static/styles.css" rel="stylesheet">
     
-    <title></title>
+    <title>{{ page.title }}</title>
     
 </head>
 <body>
@@ -50,7 +50,7 @@
                 </li>
             </ul>
             <span class="navbar-text" id = "coords">
-                🌳 
+                🌳 {{ loc }}
             </span>
         </div>
     </div>
@@ -58,82 +58,51 @@
 
 
 <main class="container py-5 text-center">
-    <article class="post">
-
-  <header class="post-header">
-    <h1 class="post-title"></h1>
-  </header>
-
-  <div class="post-content">
-    <style type="text/css" media="screen">
-  .container {
-    margin: 10px auto;
-    max-width: 600px;
-    text-align: center;
-  }
-  h1 {
-    margin: 30px 0;
-    font-size: 4em;
-    line-height: 1;
-    letter-spacing: -1px;
-  }
-</style>
-
-<div class="container">
-  <h1>404</h1>
-
-  <p><strong>Page not found :(</strong></p>
-  <p>The requested page could not be found.</p>
-</div>
-
-  </div>
-
-</article>
-
+    {{ content }}
 </main>
 <footer class="pt-5 my-5 text-body-secondary border-top text-center">
     25-cc &copy; 2025 
 </footer>
 <script>
     let x;
-        function getLocation() {
-            if (navigator.geolocation) {
-                console.log(`navigator.geolocation successful`);
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
-            } else { 
-                console.log(`Geolocation is not supported by this browser`);
-                // window.location.replace(`/?location_data=Error`);
-            }
+    function getLocation() {
+        if (navigator.geolocation) {
+            console.log(`navigator.geolocation successful`);
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else { 
+            console.log(`Geolocation is not supported by this browser`);
+            // window.location.replace(`/?location_data=Error`);
         }
-        
-        function showPosition(position) {
-            let lat = position.coords.latitude
-            let lon = position.coords.longitude
-            console.log(`${lat} ${lon}`)
-            // window.location.replace(`/?location_data=Success&lat=${lat}&lon=${lon}`)
+    }
+    
+    function showPosition(position) {
+        let lat = position.coords.latitude
+        let lon = position.coords.longitude
+        console.log(`${lat} ${lon}`)
+        // window.location.replace(`/?location_data=Success&lat=${lat}&lon=${lon}`)
+    }
+    
+    function showError(error) {
+        console.log("Error in retrieving location");
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+            x = "User denied the request for Geolocation."
+            break;
+            case error.POSITION_UNAVAILABLE:
+            x = "Location information is unavailable."
+            break;
+            case error.TIMEOUT:
+            x = "The request to get user location timed out."
+            break;
+            case error.UNKNOWN_ERROR:
+            x = "An unknown error occurred."
+            break;
         }
-        
-        function showError(error) {
-            console.log("Error in retrieving location");
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                x = "User denied the request for Geolocation."
-                break;
-                case error.POSITION_UNAVAILABLE:
-                x = "Location information is unavailable."
-                break;
-                case error.TIMEOUT:
-                x = "The request to get user location timed out."
-                break;
-                case error.UNKNOWN_ERROR:
-                x = "An unknown error occurred."
-                break;
-            }
-            console.log(x);
-            // window.location.replace(`/?location_data=Error`)
-        }
-        
-        getLocation();
+        console.log(x);
+        // window.location.replace(`/?location_data=Error`)
+    }
+    
+    getLocation();
 </script>
 </body>
 </html>
