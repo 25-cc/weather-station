@@ -12,7 +12,7 @@
     <!-- JQuery -->
     <script src="/static/jquery-3.7.1.min.js" type="text/javascript"></script>
     
-    <link href="/static/favicon.png" rel="icon" type="image/png">
+    <link href="/assets/images/favicon.png" rel="icon" type="image/png">
     
     <link href="/static/styles.css" rel="stylesheet">
     
@@ -30,7 +30,7 @@
             <div class="collapse navbar-collapse" id="navbarText">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        <a class="nav-link active" aria-current="page" href="/">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -46,7 +46,7 @@
                     <a class="nav-link" href="#">Parks</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">About</a>
+                    <a class="nav-link" href="/about.html">About</a>
                 </li>
             </ul>
             <span class="navbar-text" id = "coords">
@@ -86,44 +86,44 @@
 </footer>
 <script>
     let x;
-        function getLocation() {
-            if (navigator.geolocation) {
-                console.log(`navigator.geolocation successful`);
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
-            } else { 
-                console.log(`Geolocation is not supported by this browser`);
-                // window.location.replace(`/?location_data=Error`);
-            }
+    function getLocation() {
+        if (navigator.geolocation) {
+            console.log(`navigator.geolocation successful`);
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else { 
+            console.log(`Geolocation is not supported by this browser`);
+            // window.location.replace(`/?location_data=Error`);
         }
-        
-        function showPosition(position) {
-            let lat = position.coords.latitude
-            let lon = position.coords.longitude
-            console.log(`${lat} ${lon}`)
-            // window.location.replace(`/?location_data=Success&lat=${lat}&lon=${lon}`)
+    }
+    
+    function showPosition(position) {
+        let lat = position.coords.latitude
+        let lon = position.coords.longitude
+        console.log(`${lat} ${lon}`)
+        // window.location.replace(`/?location_data=Success&lat=${lat}&lon=${lon}`)
+    }
+    
+    function showError(error) {
+        console.log("Error in retrieving location");
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+            x = "User denied the request for Geolocation."
+            break;
+            case error.POSITION_UNAVAILABLE:
+            x = "Location information is unavailable."
+            break;
+            case error.TIMEOUT:
+            x = "The request to get user location timed out."
+            break;
+            case error.UNKNOWN_ERROR:
+            x = "An unknown error occurred."
+            break;
         }
-        
-        function showError(error) {
-            console.log("Error in retrieving location");
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                x = "User denied the request for Geolocation."
-                break;
-                case error.POSITION_UNAVAILABLE:
-                x = "Location information is unavailable."
-                break;
-                case error.TIMEOUT:
-                x = "The request to get user location timed out."
-                break;
-                case error.UNKNOWN_ERROR:
-                x = "An unknown error occurred."
-                break;
-            }
-            console.log(x);
-            // window.location.replace(`/?location_data=Error`)
-        }
-        
-        getLocation();
+        console.log(x);
+        // window.location.replace(`/?location_data=Error`)
+    }
+    
+    getLocation();
 </script>
 </body>
 </html>
