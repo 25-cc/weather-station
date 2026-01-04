@@ -70,6 +70,8 @@
         } else { 
             console.log(`Geolocation is not supported by this browser`);
             x = "Error"
+            loc = "Central Water Catchment"
+            document.querySelector("#display-location").innerHTML = loc;
         }
     }
     
@@ -78,6 +80,7 @@
         lon = position.coords.longitude
         console.log(`${lat} ${lon}`)
         x = "Success"
+        document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
     }
     
     function showError(error) {
@@ -98,16 +101,11 @@
         }
         console.log(x);
         x = "Error"
+        loc = "Central Water Catchment"
+        document.querySelector("#display-location").innerHTML = loc;
     }
     
     getLocation();
-
-    if (x = "Error") {
-        loc = "Central Water Catchment"
-        document.querySelector("#display-location").innerHTML = loc;
-    } else if (x = "Success") {
-        document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
-    }
 </script>
 </body>
 </html>
