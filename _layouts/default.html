@@ -41,13 +41,12 @@
                             <li><a class="dropdown-item" href="#">Tomorrow</a></li>
                         </ul>
                     </li>
-                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="./about/">About</a>
                 </li>
             </ul>
             <span class="navbar-text" id = "coords">
-                🌳 {{ loc }}
+                🌳 <span id = "display-location"></span>
             </span>
         </div>
     </div>
@@ -62,21 +61,23 @@
 </footer>
 <script>
     let x;
+    let lat;
+    let lon;
     function getLocation() {
         if (navigator.geolocation) {
             console.log(`navigator.geolocation successful`);
             navigator.geolocation.getCurrentPosition(showPosition, showError);
         } else { 
             console.log(`Geolocation is not supported by this browser`);
-            // window.location.replace(`/?location_data=Error`);
+            x = "Error"
         }
     }
     
     function showPosition(position) {
-        let lat = position.coords.latitude
-        let lon = position.coords.longitude
+        lat = position.coords.latitude
+        lon = position.coords.longitude
         console.log(`${lat} ${lon}`)
-        // window.location.replace(`/?location_data=Success&lat=${lat}&lon=${lon}`)
+        x = "Success"
     }
     
     function showError(error) {
@@ -96,10 +97,17 @@
             break;
         }
         console.log(x);
-        // window.location.replace(`/?location_data=Error`)
+        x = "Error"
     }
     
     getLocation();
+
+    if (x = "Error") {
+        loc = "Central Water Catchment"
+        document.querySelector("#display-location").innerHTML = loc;
+    } else if (x = "Success") {
+        document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
+    }
 </script>
 </body>
 </html>
