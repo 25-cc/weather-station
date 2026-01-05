@@ -12,7 +12,7 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Current weather</h1>
                     <p>
-                        current_weather
+                        <span id = "current_weather"></span>
                     </p>
                 </div>
             </div>
@@ -108,6 +108,91 @@ title: Home
         </div>
     </div>
 </div>
+
+<script>
+    let x;
+    let lat;
+    let lon;
+    
+    async function getLocation() {
+        if (navigator.geolocation) {
+            console.log(`navigator.geolocation successful`);
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else { 
+            console.log(`Geolocation is not supported by this browser`);
+            x = "Error"
+            loc = "Central Water Catchment"
+            document.querySelector("#display-location").innerHTML = loc;
+            await getWeatherReadings(loc); 
+        }
+    }
+    
+    async function showPosition(position) {
+        lat = position.coords.latitude
+        lon = position.coords.longitude
+        console.log(`${lat} ${lon}`)
+        x = "Success"
+        // Todo: Implement the Haversine formula for identifying the nearest weather station to user's location
+        document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
+        loc = "Central Water Catchment"
+        await getWeatherReadings(loc);
+    }
+    
+    async function showError(error) {
+        console.log("Error in retrieving location");
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+            x = "User denied the request for Geolocation."
+            break;
+            case error.POSITION_UNAVAILABLE:
+            x = "Location information is unavailable."
+            break;
+            case error.TIMEOUT:
+            x = "The request to get user location timed out."
+            break;
+            case error.UNKNOWN_ERROR:
+            x = "An unknown error occurred."
+            break;
+        }
+        console.log(x);
+        x = "Error"
+        loc = "Central Water Catchment"
+        document.querySelector("#display-location").innerHTML = loc;
+        await getWeatherReadings(loc);
+    }
+    
+    async function getWeatherReadings(location) {
+        // Use fetch to get data from the various weather APIs
+        // Update the innerHTML of various parts of the site
+        const forecast_2hr_url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
+        forecast_2h = await get_api_data(forecast_2hr_url);
+        if (forecast_2h.code != 0) {
+            throw new Error (`Error occured when retrieving data from 2h forecast API. Error message: ${forecast_2h.errorMsg}`)
+        } else {
+            for (let reading of forecast_2h.data.items.forecasts) {
+                if (reading.area == location) {
+                    document.querySelector("#current_weather").innerHTML = reading.forecast;
+                }
+            }
+        }
+    }
+    
+    async function get_api_data(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Error occured. Response code ${response.status}`);
+            }
+            const result = await response.json();
+            return result;
+        }
+        catch (error) {
+            console.error(error.message);
+        }
+    }
+    
+    getLocation();
+</script>
 
 
 <!-- List of parks -->
