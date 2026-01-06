@@ -10,9 +10,9 @@ title: Home
             <!-- APIs: https://data.gov.sg/collections/1456/view -->
             <div class="p-5 mb-4 bg-body-tertiary rounded-3">
                 <div class="container-fluid">
-                    <h1 class="display-5 fw-bold">Current weather</h1>
+                    <h1 class="display-5 fw-bold">Weather</h1>
                     <p>
-                        Reading from <span id = "current_weather_station"></span>
+                        📌 Reading from <span id = "current_weather_station"></span>
                     </p>
                     <p>
                         <span id = "current_weather"></span>
@@ -27,10 +27,10 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Heat readings</h1>
                     <p>
-                        Reading from <span id = "heat_station"></span>
+                        📌 Reading from <span id = "heat_station"></span>
                     </p>
                     <p>
-                        Wet bulb temperature: <span id = "wet_bulb"></span>
+                        Wet bulb temperature: <span id = "wet_bulb"></span>°C
                     </p>
                     <p>
                         Heat stress: <span id = "heat_stress"></span>
@@ -45,7 +45,10 @@ title: Home
             <!-- https://data.gov.sg/datasets/d_1b676cd174a9af4704fdb3f9aa58ff5e/view -->
             <div class="p-5 mb-4 bg-body-tertiary rounded-3">
                 <div class="container-fluid">
-                    <h1 class="display-5 fw-bold">UV Index</h1>
+                    <h1 class="display-5 fw-bold">UV index</h1>
+                    <p>
+                        A single reading is given for the whole of Singapore
+                    </p>
                     <p>
                         Reading as of <span id = "uv_index_timestamp"></span>: <span id = "uv_index"></span>
                     </p>
@@ -60,10 +63,10 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Air pollution</h1>
                     <p>
-                        Reading from <span id = "pollution_station"></span> Singapore
+                        📌 Reading from <span id = "pollution_station"></span> Singapore
                     </p>
                     <p>
-                        Latest PM2.5 reading: <span id = "pm25"></span>
+                        PM2.5: <span id = "pm25"></span>
                     </p>
                 </div>
             </div>
@@ -218,7 +221,48 @@ title: Home
             // fetch the associated reading
             for (let reading of forecast_2h.data.items[0].forecasts) {
                 if (reading.area == nearestStation) {
-                    document.querySelector("#current_weather").innerHTML = reading.forecast;
+                    // based on the forecast, add some emoji to it  	
+                    let weather_forecast_emoji;
+                    switch (reading.forecast) {
+                        case "Fair":
+                        case "Fair (Day)":
+                        case "Fair and Warm":
+                            weather_forecast_emoji = "☀️";
+                            break;
+                        case "Fair (Night)":
+                            weather_forecast_emoji = "🌃";
+                            break;
+                        case "Partly Cloudy":
+                        case "Partly Cloudy (Day)":
+                        case "Partly Cloudy (Night)":
+                        case "Cloudy":
+                            weather_forecast_emoji = "☁️";
+                            break;
+                        case "Hazy":
+                        case "Slightly Hazy":
+                        case "Mist":
+                        case "Fog":
+                            weather_forecast_emoji = "🌁";
+                            break;
+                        case "Windy":
+                            weather_forecast_emoji = "🌬️";
+                            break;
+                        case "Light Rain":
+                        case "Moderate Rain":
+                        case "Heavy Rain":
+                        case "Passing Showers":
+                        case "Light Showers":
+                        case "Showers":
+                        case "Heavy Showers":
+                            weather_forecast_emoji = "🌧️☔️";
+                            break;
+                        case "Thundery Showers":
+                        case "Heavy Thundery Showers":
+                        case "Heavy Thundery Showers with Gusty Winds":
+                            weather_forecast_emoji = "⚡️⛈️⚡️";
+                            break;
+                    }
+                    document.querySelector("#current_weather").innerHTML = `${reading.forecast} ${weather_forecast_emoji}`;
                 }
             }
         }
@@ -275,7 +319,7 @@ title: Home
                     nearestStation = stn.name;
                 }
             }
-
+            
             document.querySelector("#pollution_station").innerHTML = nearestStation;
             
             for (let [location, reading] of Object.entries(pm25.data.items[0].readings.pm25_one_hourly)) {
