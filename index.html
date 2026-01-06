@@ -12,6 +12,9 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Current weather</h1>
                     <p>
+                        Reading from <span id = "current_weather_station"></span>
+                    </p>
+                    <p>
                         <span id = "current_weather"></span>
                     </p>
                 </div>
@@ -23,6 +26,9 @@ title: Home
             <div class="p-5 mb-4 bg-body-tertiary rounded-3">
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Heat readings</h1>
+                    <p>
+                        Reading from <span id = "heat_station"></span>
+                    </p>
                     <p>
                         Wet bulb temperature: <span id = "wet_bulb"></span>
                     </p>
@@ -53,6 +59,9 @@ title: Home
             <div class="p-5 mb-4 bg-body-tertiary rounded-3">
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Air pollution</h1>
+                    <p>
+                        Reading from <span id = "pollution_station"></span> Singapore
+                    </p>
                     <p>
                         Latest PM2.5 reading: <span id = "pm25"></span>
                     </p>
@@ -108,6 +117,31 @@ title: Home
     let lat;
     let lon;
     
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+        // Calculates the distance between two points on Earth based on the latitude and longitude of both points
+        
+        // To use the formula, the latitude and longitude readings have to be converted to radians
+        function radian(deg) {
+            // Pi radians = 180 degrees
+            return deg * Math.PI / 180;
+        }
+        
+        const earthRadius = 6371; // in kilometers
+        
+        // compute the distance between the two points in radians
+        const dLat = radian(lat2 - lat1);
+        const dLon = radian(lon2 - lon1);
+        
+        // Calculate haversine of the central angle between two points 
+        const a = Math.pow((Math.sin(dLat/2)),2) + Math.cos(radian(lat1)) * Math.cos(radian(lat2)) * Math.pow(Math.sin(dLon/2),2);
+        
+        // Calculate central angle from the haversine
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        
+        // Return distance in kilometers
+        return earthRadius * c;
+    }
+    
     async function getLocation() {
         if (navigator.geolocation) {
             console.log(`navigator.geolocation successful`);
@@ -115,9 +149,11 @@ title: Home
         } else { 
             console.log(`Geolocation is not supported by this browser`);
             x = "Error"
-            loc = "Central Water Catchment"
-            document.querySelector("#display-location").innerHTML = loc;
-            await getWeatherReadings(loc); 
+            // Default location is Central Water Catchment
+            lat = 1.38;
+            lon = 103.805;
+            // document.querySelector("#display-location").innerHTML = loc;
+            await getWeatherReadings(lat, lon); 
         }
     }
     
@@ -128,8 +164,7 @@ title: Home
         x = "Success"
         // Todo: Implement the Haversine formula for identifying the nearest weather station to user's location
         document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
-        loc = "Central Water Catchment"
-        await getWeatherReadings(loc);
+        await getWeatherReadings(lat, lon);
     }
     
     async function showError(error) {
@@ -150,36 +185,69 @@ title: Home
         }
         console.log(x);
         x = "Error"
-        loc = "Central Water Catchment"
-        document.querySelector("#display-location").innerHTML = loc;
-        await getWeatherReadings(loc);
+        // Default location is Central Water Catchment
+        lat = 1.38;
+        lon = 103.805;
+        // document.querySelector("#display-location").innerHTML = loc;
+        await getWeatherReadings(lat, lon);
     }
     
-    async function getWeatherReadings(location) {
+    async function getWeatherReadings(userLatitude, userLongitude) {
+        let location;
+        let nearestStation;
+        let computedDistance;
+        let shortestDistance = Infinity;
+        
         // Use fetch to get data from the various weather APIs
         // Update the innerHTML of various parts of the site
         const forecast_2hr_url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
         forecast_2h = await get_api_data(forecast_2hr_url);
         if (forecast_2h != undefined) {
+            
+            // find nearest weather station
+            for (stn of forecast_2h.data.area_metadata) {
+                computedDistance = haversineDistance(userLatitude, userLongitude, stn.label_location.latitude, stn.label_location.longitude);
+                if (computedDistance < shortestDistance) {
+                    shortestDistance = computedDistance;
+                    nearestStation = stn.name;
+                }
+            }
+            
+            document.querySelector("#current_weather_station").innerHTML = nearestStation;
+            
+            // fetch the associated reading
             for (let reading of forecast_2h.data.items[0].forecasts) {
-                if (reading.area == location) {
+                if (reading.area == nearestStation) {
                     document.querySelector("#current_weather").innerHTML = reading.forecast;
                 }
             }
         }
-
+        
         // wet bulb and heat stress readings use a different set of weather stations
         const wet_bulb_url = "https://api-open.data.gov.sg/v2/real-time/api/weather?api=wbgt"
         wet_bulb = await get_api_data(wet_bulb_url);
         if (wet_bulb != undefined) {
+            
+            // find nearest weather station
+            shortestDistance = Infinity;
+            for (stn of wet_bulb.data.records[0].item.readings) {
+                computedDistance = haversineDistance(userLatitude, userLongitude, stn.location.latitude, stn.location.longitude);
+                if (computedDistance < shortestDistance) {
+                    shortestDistance = computedDistance;
+                    nearestStation = stn.station.name;
+                }
+            }
+            
+            document.querySelector("#heat_station").innerHTML = nearestStation;
+            
             for (let reading of wet_bulb.data.records[0].item.readings) {
-                if (reading.station.name == "Bukit Timah(West)") {
+                if (reading.station.name == nearestStation) {
                     document.querySelector("#wet_bulb").innerHTML = reading.wbgt;
                     document.querySelector("#heat_stress").innerHTML = reading.heatStress;
                 }
             }
         }
-
+        
         // UV index is the same for the whole of Singapore
         const uv_index_url = 'https://api-open.data.gov.sg/v2/real-time/api/uv'
         uv_index = await get_api_data(uv_index_url);
@@ -192,24 +260,37 @@ title: Home
             }).format(timestamp);
             document.querySelector("#uv_index").innerHTML = uv_index.data.records[0].index[0].value;
         }
-
+        
         // PM2.5 uses yet another different set of weather stations
         const pm25_url = "https://api-open.data.gov.sg/v2/real-time/api/pm25"
         pm25 = await get_api_data(pm25_url);
         if (pm25 != undefined) {
+            
+            // find nearest weather station
+            shortestDistance = Infinity;
+            for (stn of pm25.data.regionMetadata) {
+                computedDistance = haversineDistance(userLatitude, userLongitude, stn.labelLocation.latitude, stn.labelLocation.longitude);
+                if (computedDistance < shortestDistance) {
+                    shortestDistance = computedDistance;
+                    nearestStation = stn.name;
+                }
+            }
+
+            document.querySelector("#pollution_station").innerHTML = nearestStation;
+            
             for (let [location, reading] of Object.entries(pm25.data.items[0].readings.pm25_one_hourly)) {
                 if (location == "central") {
                     document.querySelector("#pm25").innerHTML = reading
                 }
             }
         }
-
+        
         // PSI uses the same stations as PM2.5
         // PSI computation: https://www.haze.gov.sg/docs/default-source/faq/computation-of-the-pollutant-standards-index-(psi).pdf
         const psi_url = "https://api-open.data.gov.sg/v2/real-time/api/psi"
         psi = await get_api_data(psi_url);
         if (psi != undefined) {
-
+            // skip finding the nearest weather station, reuse nearestStation as defined by PM2.5
         }
     }
     
