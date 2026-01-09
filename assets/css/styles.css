@@ -1,0 +1,8 @@
+#weather_station_location_list {
+    list-style-type: none;
+    padding-left: 0; /* Removes indentation */
+}
+
+#pollution_station::first-letter {
+    text-transform: capitalize;
+}

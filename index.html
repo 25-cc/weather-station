@@ -3,17 +3,14 @@ layout: default
 title: Home
 ---
 
-<div class="container text-center">
-    <div class="row">
+<div class="container">
+    <div class="row text-center">
         <div class="col">
             <!-- Current weather forecast (next 2h)-->
             <!-- APIs: https://data.gov.sg/collections/1456/view -->
             <div class="p-5 mb-4 bg-body-tertiary rounded-3">
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Weather</h1>
-                    <p>
-                        📌 Reading from <span id = "current_weather_station"></span>
-                    </p>
                     <p>
                         <span id = "current_weather"></span>
                     </p>
@@ -27,7 +24,10 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Heat readings</h1>
                     <p>
-                        📌 Reading from <span id = "heat_station"></span>
+                        Air temperature: <span id = "air_temp"></span>°C
+                    </p>
+                    <p>
+                        Humidity: <span id = "humidity"></span>%
                     </p>
                     <p>
                         Wet bulb temperature: <span id = "wet_bulb"></span>°C
@@ -39,16 +39,13 @@ title: Home
             </div>
         </div>
     </div>
-    <div class="row">
+    <div class="row text-center">
         <div class="col">
             <!-- UV Index -->
             <!-- https://data.gov.sg/datasets/d_1b676cd174a9af4704fdb3f9aa58ff5e/view -->
             <div class="p-5 mb-4 bg-body-tertiary rounded-3">
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">UV index</h1>
-                    <p>
-                        A single reading is given for the whole of Singapore
-                    </p>
                     <p>
                         Reading as of <span id = "uv_index_timestamp"></span>: <span id = "uv_index"></span>
                     </p>
@@ -63,26 +60,55 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">Air pollution</h1>
                     <p>
-                        📌 Reading from <span id = "pollution_station"></span> Singapore
-                    </p>
-                    <p>
                         PM2.5: <span id = "pm25"></span>
                     </p>
                 </div>
             </div>
         </div>
-        <div class="col">
-            <!-- Other weather readings -->
-            <!-- APIs: https://data.gov.sg/collections/1459/view -->
-            <div class="p-5 mb-4 bg-body-tertiary rounded-3">
+    </div>
+    <div class = "row">
+        <div class = "col">
+            <div class="bg-body-tertiary rounded-3">
                 <div class="container-fluid">
-                    <h1 class="display-5 fw-bold">Other readings</h1>
-                    <p>
-                        Using a series of utilities, you can create this jumbotron, just
-                        like the one in previous versions of Bootstrap. Check out the
-                        examples below for how you can remix and restyle it to your
-                        liking.
-                    </p>
+                    <div id="map" style="height: 500px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "row">
+        <div class = "col">
+            <div class="accordion" id="weather_station_locations">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Reading sources
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#weather_station_locations">
+                    <div class="accordion-body">
+                        <ul id = "weather_station_location_list">
+                            <li>📌 Weather: <span id = "current_weather_station"></span>, updated every two hours</li>
+                            <li>📌 Wet bulb temperature and heat stress: <span id = "heat_station"></span>, updated every 15 minutes</li>
+                            <li>📌 Air pollution: <span id = "pollution_station"></span> Singapore, updated every 15 minutes</li> 
+                            <li>📌 Air temperature: <span id = "air_temp_station"></span>, updated every 5 minutes</li>
+                            <li>📌 Humidity: <span id = "humidity_station"></span>, updated every 5 minutes</li>
+                            <li>🏝️ A single UV index reading is given for the whole of Singapore, updated hourly between 7am and 7pm</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Change location
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#weather_station_locations">
+                    <div class="accordion-body">
+                        If the GPS reading is wrong, you can manually select your location by clicking on the map above.
+                        Add a button here to change location
+                    </div>
                 </div>
             </div>
         </div>
@@ -196,6 +222,8 @@ title: Home
     }
     
     async function getWeatherReadings(userLatitude, userLongitude) {
+        map_render();
+        
         let location;
         let nearestStation;
         let computedDistance;
@@ -227,26 +255,26 @@ title: Home
                         case "Fair":
                         case "Fair (Day)":
                         case "Fair and Warm":
-                            weather_forecast_emoji = "☀️";
-                            break;
+                        weather_forecast_emoji = "☀️";
+                        break;
                         case "Fair (Night)":
-                            weather_forecast_emoji = "🌃";
-                            break;
+                        weather_forecast_emoji = "🌃";
+                        break;
                         case "Partly Cloudy":
                         case "Partly Cloudy (Day)":
                         case "Partly Cloudy (Night)":
                         case "Cloudy":
-                            weather_forecast_emoji = "☁️";
-                            break;
+                        weather_forecast_emoji = "☁️";
+                        break;
                         case "Hazy":
                         case "Slightly Hazy":
                         case "Mist":
                         case "Fog":
-                            weather_forecast_emoji = "🌁";
-                            break;
+                        weather_forecast_emoji = "🌁";
+                        break;
                         case "Windy":
-                            weather_forecast_emoji = "🌬️";
-                            break;
+                        weather_forecast_emoji = "🌬️";
+                        break;
                         case "Light Rain":
                         case "Moderate Rain":
                         case "Heavy Rain":
@@ -254,13 +282,13 @@ title: Home
                         case "Light Showers":
                         case "Showers":
                         case "Heavy Showers":
-                            weather_forecast_emoji = "🌧️☔️";
-                            break;
+                        weather_forecast_emoji = "🌧️☔️";
+                        break;
                         case "Thundery Showers":
                         case "Heavy Thundery Showers":
                         case "Heavy Thundery Showers with Gusty Winds":
-                            weather_forecast_emoji = "⚡️⛈️⚡️";
-                            break;
+                        weather_forecast_emoji = "⚡️⛈️⚡️";
+                        break;
                     }
                     document.querySelector("#current_weather").innerHTML = `${reading.forecast} ${weather_forecast_emoji}`;
                 }
@@ -323,7 +351,7 @@ title: Home
             document.querySelector("#pollution_station").innerHTML = nearestStation;
             
             for (let [location, reading] of Object.entries(pm25.data.items[0].readings.pm25_one_hourly)) {
-                if (location == "central") {
+                if (location == nearestStation) {
                     document.querySelector("#pm25").innerHTML = reading
                 }
             }
@@ -335,6 +363,52 @@ title: Home
         psi = await get_api_data(psi_url);
         if (psi != undefined) {
             // skip finding the nearest weather station, reuse nearestStation as defined by PM2.5
+        }
+        
+        // Air temperature
+        const air_temp_url = "https://api-open.data.gov.sg/v2/real-time/api/air-temperature";
+        air_temp = await get_api_data(air_temp_url);
+        if (air_temp != undefined) {
+            
+            // find nearest weather station
+            shortestDistance = Infinity;
+            for (stn of air_temp.data.stations) {
+                computedDistance = haversineDistance(userLatitude, userLongitude, stn.location.latitude, stn.location.longitude);
+                if (computedDistance < shortestDistance) {
+                    shortestDistance = computedDistance;
+                    nearestStation = stn.id;
+                    document.querySelector("#air_temp_station").innerHTML = stn.name;
+                }
+            }
+            
+            for (let reading of air_temp.data.readings[0].data) {
+                if (reading.stationId == nearestStation) {
+                    document.querySelector("#air_temp").innerHTML = reading.value
+                }
+            }
+        }
+        
+        // Humidity
+        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/rainfall";
+        humidity = await get_api_data(humidity_url);
+        if (humidity != undefined) {
+            
+            // find nearest weather station
+            shortestDistance = Infinity;
+            for (stn of humidity.data.stations) {
+                computedDistance = haversineDistance(userLatitude, userLongitude, stn.location.latitude, stn.location.longitude);
+                if (computedDistance < shortestDistance) {
+                    shortestDistance = computedDistance;
+                    nearestStation = stn.id;
+                    document.querySelector("#humidity_station").innerHTML = stn.name;
+                }
+            }
+            
+            for (let reading of humidity.data.readings[0].data) {
+                if (reading.stationId == nearestStation) {
+                    document.querySelector("#humidity").innerHTML = reading.value
+                }
+            }
         }
     }
     
@@ -359,12 +433,38 @@ title: Home
     }
     
     getLocation();
-</script>
-
-
-<!-- List of parks -->
-<!-- APIs: 
-NEA Parks https://data.gov.sg/datasets/d_0542d48f0991541706b58059381a6eca/view
-NEA Park Facilities https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view
-HPB Parks@SG https://data.gov.sg/datasets/d_99b71f5d34cf57a3a592fbfdef1f42b6/view
--->
+    
+    // Map functions related to selecting your location
+    function map_render() {
+        var map = L.map('map', {
+            center: [lat, lon], 
+            zoom: 13,
+            trackResize: false});
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            
+            var popup = L.popup();
+            
+            function onMapClick(e) {
+                popup
+                .setLatLng(e.latlng)
+                .setContent("Location: " + e.latlng.toString())
+                .openOn(map);
+            }
+            
+            map.on('click', onMapClick);
+            
+            // Todo: add function to change location and fetch a new set of weather readings
+        }
+    </script>
+    
+    
+    <!-- List of parks -->
+    <!-- APIs: 
+    NEA Parks https://data.gov.sg/datasets/d_0542d48f0991541706b58059381a6eca/view
+    NEA Park Facilities https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view
+    HPB Parks@SG https://data.gov.sg/datasets/d_99b71f5d34cf57a3a592fbfdef1f42b6/view
+    -->
