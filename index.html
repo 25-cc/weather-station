@@ -3,6 +3,14 @@ layout: default
 title: Home
 ---
 
+
+<div class="d-flex align-items-center" id = "api_load_indicator">
+  <strong role="status">Fetching weather readings from various APIs...</strong>
+  <div class="spinner-border ms-auto" aria-hidden="true"></div>
+</div>
+
+
+
 <div class="container">
     <div class="row text-center">
         <div class="col">
@@ -47,7 +55,7 @@ title: Home
                 <div class="container-fluid">
                     <h1 class="display-5 fw-bold">UV index</h1>
                     <p>
-                        Reading as of <span id = "uv_index_timestamp"></span>: <span id = "uv_index"></span>
+                        Reading as of <span id = "uv_index_timestamp"></span>: <span id= "uv_index"></span>
                     </p>
                 </div>
             </div>
@@ -116,36 +124,25 @@ title: Home
                         <div id = "change_location_success_alert"></div>
                     </div>
                 </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+                            Detailed heat and UV advisories
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#weather_station_locations">
+                    <div class="accordion-body">
+                        <p>As a tropical country located near the Equator, Singapore is prone to high heat stress and strong UV radiation in the daytime.</p>
+                        <p>Please refer to the following websites on <a href="https://www.weather.gov.sg/weather-uv">sun protection measures</a> and 
+                            <a href="https://www.weather.gov.sg/heat-stress">heat stress</a> on how to safely partake in outdoor activities during the day.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container text-center">
-    <div class="row row-cols-2">
-        <!-- Cards to bring the user to today's and tomorrow's forecasts on separate pages-->
-        <div class="col">
-            <div class="card w-90">
-                <img src="/assets/images/botanics.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Today's forecast</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card’s content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card w-90">
-                <img src="/assets/images/botanics.jpg" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Tomorrow's forecast</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card’s content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3 text-warning">
     <div id="location_error" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -237,8 +234,6 @@ title: Home
         lon = position.coords.longitude
         console.log(`${lat} ${lon}`)
         x = "Success"
-        // Todo: Implement the Haversine formula for identifying the nearest weather station to user's location
-        document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
         map_render();
         getWeatherReadings(lat, lon);
     }
@@ -264,7 +259,6 @@ title: Home
         // Default location is Central Water Catchment
         lat = 1.38;
         lon = 103.805;
-        // document.querySelector("#display-location").innerHTML = loc;
         map_render();
         getWeatherReadings(lat, lon);
     }   
@@ -444,6 +438,9 @@ title: Home
                 }
             }
         }
+
+        // Hide loading button
+        document.querySelector("#api_load_indicator").style.visibility = "hidden";
     }
     
     async function get_api_data(url) {
