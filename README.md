@@ -36,8 +36,20 @@ To change location, the user must do the following two steps:
 To ensure that the updated readings are obtained as fast as possible, I made the design decision to perform all API calls only once upon page load. If I were to call the API every single time the user changes readings, it would be extremely slow (on the order of several seconds) and would run into API rate limit issues fairly quickly. The data from the API is also updated at most every 5 minutes, which has little bearing on the accuracy of the information shown. I also made sure to give several visual cues to the user that their location has been updated - by displaying an alert below the button once their location has been successfully updated, as well as moving the marker on the map from their old location to their new location.
 
 ##### 24-hour forecast (24h.html)
+The 24-hour forecast displays the weather forecast for the next 24 hours.
+
+In the API, two sets of data are provided: 
+1. Overall readings for the whole of Singapore (forecast, temperature, humidity and wind speed)
+2. Location-based weather forecasts for central, north, south, east and west Singapore.
+
+The first set of data is rendered on the top of the page in four columns.
+
+The second set of data is rendered on a Leaflet map. Markers corresponding to each location are placed on the map, and if the user hovers over a marker, they can see the forecast for the next day for that location in a tooltip.
 
 ##### 4-day outlook (4d.html)
+The 4-day outlook displays the weather forecast for the whole of Singaproe for the next 4 days. Similar to the 24-hour forecast, overall readings for the whole of Singapore (forecast, temperature, humidity and wind speed) are given by the API.
+
+To render the dates in a human-friendly format, I used the JavaScript constructor Intl.DateTimeFormat.
 
 ##### About page (about.markdown)
 The About page provides attribution and credits for all the data and assets that originate from other sources.
