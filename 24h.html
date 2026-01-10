@@ -106,12 +106,14 @@ title: 24-hour forecast
     }
     
     function map_render() {
-        map = L.map('map', {center: [1.35, 103.805], zoom: 12, trackResize: false});
+        map = L.map('map', {center: [1.35, 103.805], zoom: 12, trackResize: false, zoomControl: false});
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
+
+        map.setMaxBounds([[1.48, 103.6],[1.1551318634546959, 104.14146423339845]]);
     }
     
     function displayForecasts() {
