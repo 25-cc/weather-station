@@ -197,6 +197,27 @@ title: Home
     }
     
     async function getLocation() {
+        const forecast_2hr_url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
+        forecast_2h = await get_api_data(forecast_2hr_url);
+        
+        const wet_bulb_url = "https://api-open.data.gov.sg/v2/real-time/api/weather?api=wbgt"
+        wet_bulb = await get_api_data(wet_bulb_url);
+        
+        const uv_index_url = 'https://api-open.data.gov.sg/v2/real-time/api/uv'
+        uv_index = await get_api_data(uv_index_url);
+        
+        const pm25_url = "https://api-open.data.gov.sg/v2/real-time/api/pm25"
+        pm25 = await get_api_data(pm25_url);
+        
+        const psi_url = "https://api-open.data.gov.sg/v2/real-time/api/psi"
+        psi = await get_api_data(psi_url);
+        
+        const air_temp_url = "https://api-open.data.gov.sg/v2/real-time/api/air-temperature";
+        air_temp = await get_api_data(air_temp_url);
+        
+        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/rainfall";
+        humidity = await get_api_data(humidity_url);
+        
         if (navigator.geolocation) {
             console.log(`navigator.geolocation successful`);
             navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -211,7 +232,7 @@ title: Home
         }
     }
     
-    async function showPosition(position) {
+    function showPosition(position) {
         lat = position.coords.latitude
         lon = position.coords.longitude
         console.log(`${lat} ${lon}`)
@@ -219,10 +240,10 @@ title: Home
         // Todo: Implement the Haversine formula for identifying the nearest weather station to user's location
         document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
         map_render();
-        await getWeatherReadings(lat, lon);
+        getWeatherReadings(lat, lon);
     }
     
-    async function showError(error) {
+    function showError(error) {
         console.log("Error in retrieving location");
         switch(error.code) {
             case error.PERMISSION_DENIED:
@@ -245,35 +266,15 @@ title: Home
         lon = 103.805;
         // document.querySelector("#display-location").innerHTML = loc;
         map_render();
-        await getWeatherReadings(lat, lon);
+        getWeatherReadings(lat, lon);
     }   
     
-    async function getWeatherReadings(userLatitude, userLongitude) {   
+    function getWeatherReadings(userLatitude, userLongitude) {   
         let location;
         let nearestStation;
         let computedDistance;
         let shortestDistance = Infinity;
         
-        const forecast_2hr_url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
-        forecast_2h = await get_api_data(forecast_2hr_url);
-        
-        const wet_bulb_url = "https://api-open.data.gov.sg/v2/real-time/api/weather?api=wbgt"
-        wet_bulb = await get_api_data(wet_bulb_url);
-        
-        const uv_index_url = 'https://api-open.data.gov.sg/v2/real-time/api/uv'
-        uv_index = await get_api_data(uv_index_url);
-        
-        const pm25_url = "https://api-open.data.gov.sg/v2/real-time/api/pm25"
-        pm25 = await get_api_data(pm25_url);
-        
-        const psi_url = "https://api-open.data.gov.sg/v2/real-time/api/psi"
-        psi = await get_api_data(psi_url);
-        
-        const air_temp_url = "https://api-open.data.gov.sg/v2/real-time/api/air-temperature";
-        air_temp = await get_api_data(air_temp_url);
-        
-        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/rainfall";
-        humidity = await get_api_data(humidity_url);
         
         // Use fetch to get data from the various weather APIs
         // Update the innerHTML of various parts of the site
@@ -472,86 +473,82 @@ title: Home
     
     // Map functions related to selecting your location
     function map_render() {
-        map = L.map('map', {
-            center: [lat, lon], 
-            zoom: 13,
-            trackResize: false});
+        map = L.map('map', {center: [lat, lon], zoom: 13, trackResize: false});
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        
+        marker = L.marker([lat, lon]).addTo(map);
+        marker.bindTooltip("Current location").openTooltip();
+        
+        var popup = L.popup();
+        
+        function onMapClick(e) {
+            mapLat = e.latlng.lat;
+            mapLon = e.latlng.lng;
             
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
-            
-            marker = L.marker([lat, lon]).addTo(map);
-            marker.bindTooltip("Current location").openTooltip();
-            
-            var popup = L.popup();
-            
-            function onMapClick(e) {
-                mapLat = e.latlng.lat;
-                mapLon = e.latlng.lng;
-                
-                popup
-                .setLatLng(e.latlng)
-                .setContent(`Location: ${mapLat}, ${mapLon}`)
-                .openOn(map);
-            }
-            
-            map.on('click', onMapClick);
+            popup
+            .setLatLng(e.latlng)
+            .setContent(`Location: ${mapLat}, ${mapLon}`)
+            .openOn(map);
         }
         
-        getLocation();
-        
-        // Todo: add function to change location and fetch a new set of weather readings
-        const change_location_button = document.querySelector("#change_location");
-        const change_location_error_toast = document.querySelector("#location_error");
-        
-        change_location_button.addEventListener("click", () => {
-            if (mapLat == undefined || mapLon == undefined) {
-                const toastInstance = bootstrap.Toast.getOrCreateInstance(change_location_error_toast)
-                toastInstance.show();
-                return;
-            } else {
-                // todo: add an additional prompt to confirm that the user wants to move to the new location
-                if (confirm(`Change location to${mapLat}, ${mapLon}?`)) {
-                    // reassign lat and lon to the user-selected values
-                    lat = mapLat;
-                    lon = mapLon;
-                    
-                    // move the old marker to the new location
-                    marker.setLatLng([lat, lon]);
-                    
-                    // todo: add a toast or flash message that the location has been changed successfully.
-                    const change_location_success_alert = document.querySelector('#change_location_success_alert')
-                    const appendAlert = (message, type) => {
-                        const wrapper = document.createElement('div')
-                        wrapper.innerHTML = [
-                        `<div class="alert alert-${type} alert-dismissible" role="alert">`,
-                            `   <div>${message}</div>`,
-                            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-                            '</div>'
-                            ].join('')
-                            
-                            change_location_success_alert.append(wrapper)
-                        }
-
-                        appendAlert('Location updated!', 'success')
+        map.on('click', onMapClick);
+    }
+    
+    getLocation();
+    
+    const change_location_button = document.querySelector("#change_location");
+    const change_location_error_toast = document.querySelector("#location_error");
+    
+    change_location_button.addEventListener("click", () => {
+        if (mapLat == undefined || mapLon == undefined) {
+            const toastInstance = bootstrap.Toast.getOrCreateInstance(change_location_error_toast)
+            toastInstance.show();
+            return;
+        } else {
+            // todo: add an additional prompt to confirm that the user wants to move to the new location
+            if (confirm(`Change location to${mapLat}, ${mapLon}?`)) {
+                // reassign lat and lon to the user-selected values
+                lat = mapLat;
+                lon = mapLon;
+                
+                // move the old marker to the new location
+                marker.setLatLng([lat, lon]);
+                
+                // add an alert that the location has been changed successfully.
+                const change_location_success_alert = document.querySelector('#change_location_success_alert')
+                const appendAlert = (message, type) => {
+                    const wrapper = document.createElement('div')
+                    wrapper.innerHTML = [
+                    `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+                        `   <div>${message}</div>`,
+                        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+                        '</div>'
+                        ].join('')
                         
-                        return getWeatherReadings(lat, lon);
-                    } else {
-                        const toastInstance = bootstrap.Toast.getOrCreateInstance(change_location_error_toast)
-                        document.querySelector("#toast_message").innerHTML = "Please reselect your location and try again."
-                        toastInstance.show();
-                        return;
-                    }   
-                }
-            })
-        </script>
-        
-        
-        <!-- List of parks -->
-        <!-- APIs: 
-        NEA Parks https://data.gov.sg/datasets/d_0542d48f0991541706b58059381a6eca/view
-        NEA Park Facilities https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view
-        HPB Parks@SG https://data.gov.sg/datasets/d_99b71f5d34cf57a3a592fbfdef1f42b6/view
-        -->
+                        change_location_success_alert.append(wrapper)
+                    }
+                    
+                    appendAlert('Location updated!', 'success')
+                    
+                    return getWeatherReadings(lat, lon);
+                } else {
+                    const toastInstance = bootstrap.Toast.getOrCreateInstance(change_location_error_toast)
+                    document.querySelector("#toast_message").innerHTML = "Please reselect your location and try again."
+                    toastInstance.show();
+                    return;
+                }   
+            }
+        })
+    </script>
+    
+    
+    <!-- List of parks -->
+    <!-- APIs: 
+    NEA Parks https://data.gov.sg/datasets/d_0542d48f0991541706b58059381a6eca/view
+    NEA Park Facilities https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view
+    HPB Parks@SG https://data.gov.sg/datasets/d_99b71f5d34cf57a3a592fbfdef1f42b6/view
+    -->
