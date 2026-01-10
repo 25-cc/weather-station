@@ -106,8 +106,14 @@ title: Home
                 </div>
                 <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#weather_station_locations">
                     <div class="accordion-body">
-                        If the GPS reading is wrong, you can manually select your location by clicking on the map above.
-                        Add a button here to change location
+                        <p>If the GPS reading is wrong or not available, you can manually change your location by following these instructions:
+                            <ol>
+                                <li>Click/tap a location on the map above.</li>
+                                <li>Press the button below.</li>
+                            </ol>
+                        </p>
+                        <p><button type="button" class="btn btn-outline-primary" id="change_location">Set new location</button></p>
+                        <div id = "change_location_success_alert"></div>
                     </div>
                 </div>
             </div>
@@ -141,10 +147,29 @@ title: Home
     </div>
 </div>
 
+<div class="toast-container position-fixed bottom-0 end-0 p-3 text-warning">
+    <div id="location_error" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">⚠️</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id = "toast_message">Please select a location on the map before changing your location.</span>
+        </div>
+    </div>
+</div>
+
 <script>
     let x;
     let lat;
     let lon;
+    let forecast_2h;
+    let wet_bulb;
+    let uv_index;
+    let pm25;
+    let psi;
+    let air_temp;
+    let humidity;
     
     function haversineDistance(lat1, lon1, lat2, lon2) {
         // Calculates the distance between two points on Earth based on the latitude and longitude of both points
@@ -193,6 +218,7 @@ title: Home
         x = "Success"
         // Todo: Implement the Haversine formula for identifying the nearest weather station to user's location
         document.querySelector("#display-location").innerHTML = `${lat}, ${lon}`
+        map_render();
         await getWeatherReadings(lat, lon);
     }
     
@@ -218,24 +244,43 @@ title: Home
         lat = 1.38;
         lon = 103.805;
         // document.querySelector("#display-location").innerHTML = loc;
-        await getWeatherReadings(lat, lon);
-    }
-    
-    async function getWeatherReadings(userLatitude, userLongitude) {
         map_render();
-        
+        await getWeatherReadings(lat, lon);
+    }   
+    
+    async function getWeatherReadings(userLatitude, userLongitude) {   
         let location;
         let nearestStation;
         let computedDistance;
         let shortestDistance = Infinity;
         
-        // Use fetch to get data from the various weather APIs
-        // Update the innerHTML of various parts of the site
         const forecast_2hr_url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
         forecast_2h = await get_api_data(forecast_2hr_url);
+        
+        const wet_bulb_url = "https://api-open.data.gov.sg/v2/real-time/api/weather?api=wbgt"
+        wet_bulb = await get_api_data(wet_bulb_url);
+        
+        const uv_index_url = 'https://api-open.data.gov.sg/v2/real-time/api/uv'
+        uv_index = await get_api_data(uv_index_url);
+        
+        const pm25_url = "https://api-open.data.gov.sg/v2/real-time/api/pm25"
+        pm25 = await get_api_data(pm25_url);
+        
+        const psi_url = "https://api-open.data.gov.sg/v2/real-time/api/psi"
+        psi = await get_api_data(psi_url);
+        
+        const air_temp_url = "https://api-open.data.gov.sg/v2/real-time/api/air-temperature";
+        air_temp = await get_api_data(air_temp_url);
+        
+        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/rainfall";
+        humidity = await get_api_data(humidity_url);
+        
+        // Use fetch to get data from the various weather APIs
+        // Update the innerHTML of various parts of the site
         if (forecast_2h != undefined) {
             
             // find nearest weather station
+            shortestDistance = Infinity;
             for (stn of forecast_2h.data.area_metadata) {
                 computedDistance = haversineDistance(userLatitude, userLongitude, stn.label_location.latitude, stn.label_location.longitude);
                 if (computedDistance < shortestDistance) {
@@ -296,8 +341,6 @@ title: Home
         }
         
         // wet bulb and heat stress readings use a different set of weather stations
-        const wet_bulb_url = "https://api-open.data.gov.sg/v2/real-time/api/weather?api=wbgt"
-        wet_bulb = await get_api_data(wet_bulb_url);
         if (wet_bulb != undefined) {
             
             // find nearest weather station
@@ -320,9 +363,7 @@ title: Home
             }
         }
         
-        // UV index is the same for the whole of Singapore
-        const uv_index_url = 'https://api-open.data.gov.sg/v2/real-time/api/uv'
-        uv_index = await get_api_data(uv_index_url);
+        // UV index is the same for the whole of Singapore      
         if (uv_index != undefined) {
             let timestamp = new Date(uv_index.data.records[0].index[0].hour)
             document.querySelector("#uv_index_timestamp").innerHTML = new Intl.DateTimeFormat("en-GB", {
@@ -334,8 +375,6 @@ title: Home
         }
         
         // PM2.5 uses yet another different set of weather stations
-        const pm25_url = "https://api-open.data.gov.sg/v2/real-time/api/pm25"
-        pm25 = await get_api_data(pm25_url);
         if (pm25 != undefined) {
             
             // find nearest weather station
@@ -359,15 +398,11 @@ title: Home
         
         // PSI uses the same stations as PM2.5
         // PSI computation: https://www.haze.gov.sg/docs/default-source/faq/computation-of-the-pollutant-standards-index-(psi).pdf
-        const psi_url = "https://api-open.data.gov.sg/v2/real-time/api/psi"
-        psi = await get_api_data(psi_url);
         if (psi != undefined) {
             // skip finding the nearest weather station, reuse nearestStation as defined by PM2.5
         }
         
         // Air temperature
-        const air_temp_url = "https://api-open.data.gov.sg/v2/real-time/api/air-temperature";
-        air_temp = await get_api_data(air_temp_url);
         if (air_temp != undefined) {
             
             // find nearest weather station
@@ -389,8 +424,6 @@ title: Home
         }
         
         // Humidity
-        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/rainfall";
-        humidity = await get_api_data(humidity_url);
         if (humidity != undefined) {
             
             // find nearest weather station
@@ -432,11 +465,14 @@ title: Home
         }
     }
     
-    getLocation();
+    let map;
+    let marker;
+    let mapLat;
+    let mapLon;
     
     // Map functions related to selecting your location
     function map_render() {
-        var map = L.map('map', {
+        map = L.map('map', {
             center: [lat, lon], 
             zoom: 13,
             trackResize: false});
@@ -446,25 +482,76 @@ title: Home
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
             
+            marker = L.marker([lat, lon]).addTo(map);
+            marker.bindTooltip("Current location").openTooltip();
+            
             var popup = L.popup();
             
             function onMapClick(e) {
+                mapLat = e.latlng.lat;
+                mapLon = e.latlng.lng;
+                
                 popup
                 .setLatLng(e.latlng)
-                .setContent("Location: " + e.latlng.toString())
+                .setContent(`Location: ${mapLat}, ${mapLon}`)
                 .openOn(map);
             }
             
             map.on('click', onMapClick);
-            
-            // Todo: add function to change location and fetch a new set of weather readings
         }
-    </script>
-    
-    
-    <!-- List of parks -->
-    <!-- APIs: 
-    NEA Parks https://data.gov.sg/datasets/d_0542d48f0991541706b58059381a6eca/view
-    NEA Park Facilities https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view
-    HPB Parks@SG https://data.gov.sg/datasets/d_99b71f5d34cf57a3a592fbfdef1f42b6/view
-    -->
+        
+        getLocation();
+        
+        // Todo: add function to change location and fetch a new set of weather readings
+        const change_location_button = document.querySelector("#change_location");
+        const change_location_error_toast = document.querySelector("#location_error");
+        
+        change_location_button.addEventListener("click", () => {
+            if (mapLat == undefined || mapLon == undefined) {
+                const toastInstance = bootstrap.Toast.getOrCreateInstance(change_location_error_toast)
+                toastInstance.show();
+                return;
+            } else {
+                // todo: add an additional prompt to confirm that the user wants to move to the new location
+                if (confirm(`Change location to${mapLat}, ${mapLon}?`)) {
+                    // reassign lat and lon to the user-selected values
+                    lat = mapLat;
+                    lon = mapLon;
+                    
+                    // move the old marker to the new location
+                    marker.setLatLng([lat, lon]);
+                    
+                    // todo: add a toast or flash message that the location has been changed successfully.
+                    const change_location_success_alert = document.querySelector('#change_location_success_alert')
+                    const appendAlert = (message, type) => {
+                        const wrapper = document.createElement('div')
+                        wrapper.innerHTML = [
+                        `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+                            `   <div>${message}</div>`,
+                            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+                            '</div>'
+                            ].join('')
+                            
+                            change_location_success_alert.append(wrapper)
+                        }
+
+                        appendAlert('Location updated!', 'success')
+                        
+                        return getWeatherReadings(lat, lon);
+                    } else {
+                        const toastInstance = bootstrap.Toast.getOrCreateInstance(change_location_error_toast)
+                        document.querySelector("#toast_message").innerHTML = "Please reselect your location and try again."
+                        toastInstance.show();
+                        return;
+                    }   
+                }
+            })
+        </script>
+        
+        
+        <!-- List of parks -->
+        <!-- APIs: 
+        NEA Parks https://data.gov.sg/datasets/d_0542d48f0991541706b58059381a6eca/view
+        NEA Park Facilities https://data.gov.sg/datasets/d_14d807e20158338fd578c2913953516e/view
+        HPB Parks@SG https://data.gov.sg/datasets/d_99b71f5d34cf57a3a592fbfdef1f42b6/view
+        -->
