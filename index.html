@@ -9,7 +9,7 @@ title: Home
   <div class="spinner-border ms-auto" aria-hidden="true"></div>
 </div>
 
-
+<div id = "location_fail_alert"></div>
 
 <div class="container">
     <div class="row text-center">
@@ -35,7 +35,7 @@ title: Home
                         Air temperature: <span id = "air_temp"></span>°C
                     </p>
                     <p>
-                        Humidity: <span id = "humidity"></span>%
+                        Relative humidity: <span id = "humidity"></span>%
                     </p>
                     <p>
                         Wet bulb temperature: <span id = "wet_bulb"></span>°C
@@ -157,7 +157,6 @@ title: Home
 </div>
 
 <script>
-    let x;
     let lat;
     let lon;
     let forecast_2h;
@@ -212,15 +211,28 @@ title: Home
         const air_temp_url = "https://api-open.data.gov.sg/v2/real-time/api/air-temperature";
         air_temp = await get_api_data(air_temp_url);
         
-        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/rainfall";
+        const humidity_url = "https://api-open.data.gov.sg/v2/real-time/api/relative-humidity";
         humidity = await get_api_data(humidity_url);
         
         if (navigator.geolocation) {
             console.log(`navigator.geolocation successful`);
             navigator.geolocation.getCurrentPosition(showPosition, showError);
         } else { 
-            console.log(`Geolocation is not supported by this browser`);
-            x = "Error"
+                const location_fail_alert = document.querySelector('#location_fail_alert')
+                const appendAlert = (message, type) => {
+                    const wrapper = document.createElement('div')
+                    wrapper.innerHTML = [
+                    `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+                        `   <div>${message}</div>`,
+                        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+                        '</div>'
+                        ].join('')
+                        
+                        location_fail_alert.append(wrapper)
+                    }
+                    
+                    appendAlert('Geolocation is not supported by this browser. The site will display weather readings for Central Singapore.', 'danger')
+
             // Default location is Central Water Catchment
             lat = 1.38;
             lon = 103.805;
@@ -233,7 +245,26 @@ title: Home
         lat = position.coords.latitude
         lon = position.coords.longitude
         console.log(`${lat} ${lon}`)
-        x = "Success"
+        // If the user is located outside of Singapore, change lat and lon to default location
+        if (lat > 1.48 || lat < 1.1551318634546959 || lon > 104.14146423339845 || lon < 103.6) {
+            const location_fail_alert = document.querySelector('#location_fail_alert')
+                const appendAlert = (message, type) => {
+                    const wrapper = document.createElement('div')
+                    wrapper.innerHTML = [
+                    `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+                        `   <div>${message}</div>`,
+                        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+                        '</div>'
+                        ].join('')
+                        
+                        location_fail_alert.append(wrapper)
+                    }
+                    
+                    appendAlert('Your location appears to be outside of Singapore. The site will display weather readings for Central Singapore.', 'danger')
+
+            lat = 1.38;
+            lon = 103.805;
+        }
         map_render();
         getWeatherReadings(lat, lon);
     }
@@ -242,20 +273,32 @@ title: Home
         console.log("Error in retrieving location");
         switch(error.code) {
             case error.PERMISSION_DENIED:
-            x = "User denied the request for Geolocation."
+            console.log("User denied the request for Geolocation.")
             break;
             case error.POSITION_UNAVAILABLE:
-            x = "Location information is unavailable."
+            console.log("Location information is unavailable.")
             break;
             case error.TIMEOUT:
-            x = "The request to get user location timed out."
+            console.log("The request to get user location timed out.")
             break;
             case error.UNKNOWN_ERROR:
-            x = "An unknown error occurred."
+            console.log("An unknown error occurred.")
             break;
         }
-        console.log(x);
-        x = "Error"
+        const location_fail_alert = document.querySelector('#location_fail_alert')
+        const appendAlert = (message, type) => {
+            const wrapper = document.createElement('div')
+            wrapper.innerHTML = [
+                    `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+                        `   <div>${message}</div>`,
+                        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+                        '</div>'
+                        ].join('')
+                        
+                        location_fail_alert.append(wrapper)
+            }
+                    
+        appendAlert('Error in retrieving location. The site will display weather readings for Central Singapore.', 'danger')
         // Default location is Central Water Catchment
         lat = 1.38;
         lon = 103.805;
@@ -476,6 +519,8 @@ title: Home
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
+
+        map.setMaxBounds([[1.48, 103.6],[1.1551318634546959, 104.14146423339845]]);
         
         marker = L.marker([lat, lon]).addTo(map);
         marker.bindTooltip("Current location").openTooltip();
