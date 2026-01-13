@@ -39,15 +39,11 @@ To ensure that the updated readings are obtained as fast as possible, I made the
 The 24-hour forecast displays the weather forecast for the next 24 hours.
 
 In the API, two sets of data are provided: 
-1. Overall readings for the whole of Singapore (forecast, temperature, humidity and wind speed)
-2. Location-based weather forecasts for central, north, south, east and west Singapore.
-
-The first set of data is rendered on the top of the page in four columns.
-
-The second set of data is rendered on a Leaflet map. Markers corresponding to each location are placed on the map, and if the user hovers over a marker, they can see the forecast for the next day for that location in a tooltip.
+1. Overall readings for the whole of Singapore (forecast, temperature, humidity and wind speed) - this is rendered at the top of the page.
+2. Location-based weather forecasts for central, north, south, east and west Singapore - this is rendered on a Leaflet map instance. Markers corresponding to each location are placed on the map, and if the user hovers over a marker, they can see the forecast for the next day for that location in a tooltip.
 
 ##### 4-day outlook (4d.html)
-The 4-day outlook displays the weather forecast for the whole of Singaproe for the next 4 days. Similar to the 24-hour forecast, overall readings for the whole of Singapore (forecast, temperature, humidity and wind speed) are given by the API.
+The 4-day outlook displays the weather forecast for the whole of Singapore for the next 4 days. Similar to the 24-hour forecast, overall readings for the whole of Singapore (forecast, temperature, humidity and wind speed) are given by the API, which are then rendered on the page. As the outlook changes every few hours, I added the forecast timestamp provided by the API at the top of the page.
 
 To render the dates in a human-friendly format, I used the JavaScript constructor Intl.DateTimeFormat.
 
