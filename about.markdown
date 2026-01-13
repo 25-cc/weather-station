@@ -4,6 +4,9 @@ title: About
 permalink: /about/
 ---
 
+# About this page
+Weather Station is a website to obtain location-specific weather readings in Singapore based on your GPS location. It also provides 1-day and 4-day forecasts on separate pages.
+
 # Attributions
 - Built with [Jekyll](https://jekyllrb.com/) and [Bootstrap](https://getbootstrap.com/)
 - [LeafletJS](https://leafletjs.com/) used for map visualization
