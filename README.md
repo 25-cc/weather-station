@@ -1,5 +1,5 @@
 # Weather Station
-#### Video Demo:  <URL HERE>
+#### Video Demo:  https://youtu.be/v1XlNNpajJc
 #### Description:
 ##### Overview
 Weather Station is a website built using Jekyll and written in HTML, CSS and JavaScript to fetch and display the latest weather readings and forecasts for Singapore.
